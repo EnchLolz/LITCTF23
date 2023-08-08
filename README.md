@@ -1,2 +1,2 @@
-# LITCTF23
-LITCTF23 code + writeup
+# LITCTF 23
+LITCTF 23 code + writeup
