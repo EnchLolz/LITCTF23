@@ -1,20 +1,20 @@
-## Write Up For Ping Pong Under Maintainance
+## Write Up For Ping Pong Under Maintenance
 
 First check what the difference between
-Ping Pong and Ping Pong Under Maintainance
+Ping Pong and Ping Pong Under maintenance
 
 ### Ping Pong
 ```py
 return render_template('index.html', output=output)
 ```
 
-### Ping Pong Under Maintainance
+### Ping Pong Under maintenance
 ```py
 return render_template('index.html', output='The service is currently under maintainence and we have disabled outbound connections as a result.')
 ```
 
 Notice that the only difference between the two is that Ping Pong Under
-Maintainance won't output what the command does
+maintenance won't output what the command does
 
 However, the program will still excute the command as seen in these lines
 
